@@ -1,0 +1,69 @@
+name: unihub-profile-service
+
+services:
+  profile-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: unihub-profile-service
+    ports:
+      - "8003:8003"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      PORT: 8003
+      NODE_ENV: development
+
+      MONGODB_URI: mongodb://mongo:27017/profiledb
+
+      REDIS_URL: redis://redis:6379
+
+      # Connects to club-service's Kafka — must have club-service running
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-localhost:9093}
+      KAFKA_CLIENT_ID: user-profile-service
+      KAFKA_GROUP_ID: user-profile-service-group
+
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
+
+      # host.docker.internal lets the container reach services running on your machine
+      AUTH_SERVICE_URL: http://host.docker.internal:8001
+      CLUB_SERVICE_URL: http://host.docker.internal:8002
+      LEADERBOARD_SERVICE_URL: http://host.docker.internal:8004
+
+      FRONTEND_BASE_URL: http://localhost:5173
+
+      # AWS — leave empty in dev, s3.util.js uses placeholder URLs when empty
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-unihub-uploads}
+      AWS_S3_BASE_URL: ${AWS_S3_BASE_URL:-}
+
+      MAX_AVATAR_SIZE_MB: 5
+      MAX_COVER_SIZE_MB: 10
+
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: unihub-profile-mongo
+    ports:
+      - "27022:27017"
+    volumes:
+      - profile_mongo_data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: unihub-profile-redis
+    ports:
+      - "6382:6379"
+    restart: unless-stopped
+
+volumes:
+  profile_mongo_data:
