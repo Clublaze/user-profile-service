@@ -15,7 +15,7 @@ const router = Router();
 // ── Multer — memory storage (buffer sent to S3, no disk writes) ───────────────
 const avatarUpload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: env.upload.maxAvatarSizeMb * 1024 * 1024 },
+  limits:  { fileSize: env.upload.maxAvatarMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
@@ -28,7 +28,7 @@ const avatarUpload = multer({
 
 const coverUpload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: env.upload.maxCoverSizeMb * 1024 * 1024 },
+  limits:  { fileSize: env.upload.maxCoverMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {

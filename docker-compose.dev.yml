@@ -1,4 +1,4 @@
-name: unihub-profile-service
+﻿name: unihub-profile-service
 
 services:
   profile-service:
@@ -19,8 +19,9 @@ services:
 
       REDIS_URL: redis://redis:6379
 
-      # Connects to club-service's Kafka — must have club-service running
-      KAFKA_BROKERS: ${KAFKA_BROKERS:-localhost:9093}
+      # Points to club-service's shared Kafka.
+      # Start club-service docker-compose before profile-service.
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-host.docker.internal:9093}
       KAFKA_CLIENT_ID: user-profile-service
       KAFKA_GROUP_ID: user-profile-service-group
 
@@ -34,7 +35,7 @@ services:
 
       FRONTEND_BASE_URL: http://localhost:5173
 
-      # AWS — leave empty in dev, s3.util.js uses placeholder URLs when empty
+      # AWS â€” leave empty in dev, s3.util.js uses placeholder URLs when empty
       AWS_REGION: ${AWS_REGION:-}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
@@ -48,6 +49,10 @@ services:
       - mongo
       - redis
     restart: unless-stopped
+    extra_hosts:
+      # Allows reaching auth-service and club-service on the host.
+      # Required on Linux. Works automatically on Mac and Windows.
+      - "host.docker.internal:host-gateway"
 
   mongo:
     image: mongo:6

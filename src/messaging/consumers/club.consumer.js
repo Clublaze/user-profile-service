@@ -29,7 +29,6 @@ const awardBadge = async (userId, badge) => {
 // We subscribe to each one separately.
 const TOPICS = [
   'role.assigned',
-  'membership.applied',
   'membership.reviewed',
   'event.created',
   'event.submitted',

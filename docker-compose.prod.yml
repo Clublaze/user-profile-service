@@ -1,0 +1,32 @@
+name: unihub-profile-service-prod
+
+services:
+  profile-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: unihub-profile-service-prod
+    ports:
+      - "8003:8003"
+    environment:
+      PORT: 8003
+      NODE_ENV: production
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: ${REDIS_URL}
+      KAFKA_BROKERS: ${KAFKA_BROKERS}
+      KAFKA_CLIENT_ID: user-profile-service
+      KAFKA_GROUP_ID: user-profile-service-group
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL}
+      CLUB_SERVICE_URL: ${CLUB_SERVICE_URL}
+      LEADERBOARD_SERVICE_URL: ${LEADERBOARD_SERVICE_URL}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      AWS_REGION: ${AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      AWS_S3_BASE_URL: ${AWS_S3_BASE_URL}
+      MAX_AVATAR_SIZE_MB: ${MAX_AVATAR_SIZE_MB:-5}
+      MAX_COVER_SIZE_MB: ${MAX_COVER_SIZE_MB:-10}
+    restart: always

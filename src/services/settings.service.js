@@ -45,31 +45,14 @@ class SettingsService {
   // ── CHANGE PASSWORD ────────────────────────────────────────────────────────
   // Proxied to auth-service — profile-service never handles passwords directly.
   async changePassword(userId, currentPassword, newPassword, authorizationHeader) {
-    try {
-      const response = await fetch(
-        `${env.services.authServiceUrl}/api/auth/change-password`,
-        {
-          method:  'POST',
-          headers: {
-            'Content-Type':  'application/json',
-            'Authorization': authorizationHeader, // forward the user's JWT
-          },
-          body: JSON.stringify({ currentPassword, newPassword }),
-        }
-      );
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        throw new AppError(body.message || 'Password change failed', response.status);
-      }
-
-      return body;
-
-    } catch (err) {
-      if (err instanceof AppError) throw err;
-      throw new AppError('Auth service unreachable. Please try again.', 503);
-    }
+    // auth-service does not yet expose a change-password endpoint.
+    // This method will be wired up when that route is added.
+    // For now, throw a clear operational error so the frontend
+    // can display a meaningful message to the user.
+    throw new AppError(
+      'Password change is not available yet. Please use the forgot password flow or contact your administrator.',
+      503
+    );
   }
 
   // ── GET NOTIFICATION SETTINGS (internal — called by notification-service) ──
