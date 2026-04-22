@@ -1,20 +1,33 @@
 import ProfileRepo from '../repositories/profile.repo.js';
 import AppError    from '../utils/AppError.js';
-import env         from '../config/env.js';
+import authServiceClient from '../utils/authServiceClient.js';
 
 class SettingsService {
+  async ensureProfile(userId) {
+    let profile = await ProfileRepo.findByUserId(userId);
+    if (profile) return profile;
+
+    const user = await authServiceClient.getUser(userId);
+    if (!user) throw new AppError('Profile not found', 404);
+
+    return ProfileRepo.create({
+      userId: user._id?.toString?.() || userId,
+      universityId: user.universityId,
+      userType: user.userType,
+      email: user.email,
+      name: user.displayName || null,
+    });
+  }
 
   // ── GET SETTINGS ───────────────────────────────────────────────────────────
   async getSettings(userId) {
-    const profile = await ProfileRepo.findByUserId(userId);
-    if (!profile) throw new AppError('Profile not found', 404);
+    const profile = await this.ensureProfile(userId);
     return profile.settings;
   }
 
   // ── UPDATE NOTIFICATION SETTINGS ──────────────────────────────────────────
   async updateNotificationSettings(userId, updates) {
-    const profile = await ProfileRepo.findByUserId(userId);
-    if (!profile) throw new AppError('Profile not found', 404);
+    const profile = await this.ensureProfile(userId);
 
     // Merge with existing — only update the fields provided
     const merged = {
@@ -29,8 +42,7 @@ class SettingsService {
 
   // ── UPDATE PRIVACY SETTINGS ────────────────────────────────────────────────
   async updatePrivacySettings(userId, updates) {
-    const profile = await ProfileRepo.findByUserId(userId);
-    if (!profile) throw new AppError('Profile not found', 404);
+    const profile = await this.ensureProfile(userId);
 
     const merged = {
       ...profile.settings.privacy,

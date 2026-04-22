@@ -31,13 +31,34 @@ const calculateCompletionScore = (profile) => {
 };
 
 class ProfileService {
+  async ensureOwnProfile(userId) {
+    let profile = await ProfileRepo.findByUserId(userId);
+    if (profile) return profile;
+
+    const user = await authServiceClient.getUser(userId);
+    if (!user) throw new AppError('Profile not found', 404);
+
+    profile = await ProfileRepo.create({
+      userId: user._id?.toString?.() || userId,
+      universityId: user.universityId,
+      userType: user.userType,
+      email: user.email,
+      name: user.displayName || null,
+    });
+
+    const completionScore = calculateCompletionScore(profile);
+    if (completionScore !== profile.completionScore) {
+      profile = await ProfileRepo.updateCompletionScore(userId, completionScore);
+    }
+
+    return profile;
+  }
 
   // ── GET OWN FULL PROFILE ───────────────────────────────────────────────────
   // Aggregates local profile data + live data from club-service and leaderboard-service.
   // This is the main profile page response.
   async getMyProfile(userId, universityId) {
-    const profile = await ProfileRepo.findByUserId(userId);
-    if (!profile) throw new AppError('Profile not found', 404);
+    const profile = await this.ensureOwnProfile(userId);
 
     if (!profile.isActive) throw new AppError('This account has been deactivated', 403);
 
@@ -134,8 +155,7 @@ class ProfileService {
   // ── UPDATE PROFILE ─────────────────────────────────────────────────────────
   // Only allows editable fields — identity fields (email, userType) cannot be changed here.
   async updateProfile(userId, updates) {
-    const profile = await ProfileRepo.findByUserId(userId);
-    if (!profile) throw new AppError('Profile not found', 404);
+    await this.ensureOwnProfile(userId);
 
     // Strip fields the user is not allowed to change
     const forbidden = ['userId', 'universityId', 'userType', 'email', 'isActive',
@@ -155,6 +175,7 @@ class ProfileService {
 
   // ── SET PINNED HIGHLIGHT ───────────────────────────────────────────────────
   async setPinnedHighlight(userId, highlight) {
+    await this.ensureOwnProfile(userId);
     const updated = await ProfileRepo.update(userId, { pinnedHighlight: highlight });
     const newScore = calculateCompletionScore(updated);
     await ProfileRepo.updateCompletionScore(userId, newScore);
@@ -163,6 +184,7 @@ class ProfileService {
 
   // ── REMOVE PINNED HIGHLIGHT ────────────────────────────────────────────────
   async removePinnedHighlight(userId) {
+    await this.ensureOwnProfile(userId);
     return ProfileRepo.update(userId, { pinnedHighlight: null });
   }
 
