@@ -14,6 +14,10 @@ const env = {
   internalServiceSecret: process.env.INTERNAL_SERVICE_SECRET,
 
   frontendBaseUrl: process.env.FRONTEND_BASE_URL || 'http://localhost:5173',
+  allowedFrontendOrigins: (process.env.FRONTEND_BASE_URL || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 
   kafka: {
     brokers:  (process.env.KAFKA_BROKERS || 'localhost:9093').split(','),
@@ -22,9 +26,9 @@ const env = {
   },
 
   services: {
-    authUrl:        process.env.AUTH_SERVICE_URL        || 'http://localhost:8001',
-    clubUrl:        process.env.CLUB_SERVICE_URL        || 'http://localhost:8002',
-    leaderboardUrl: process.env.LEADERBOARD_SERVICE_URL || 'http://localhost:8004',
+    authServiceUrl:        process.env.AUTH_SERVICE_URL        || 'http://localhost:8001',
+    clubServiceUrl:        process.env.CLUB_SERVICE_URL        || 'http://localhost:8002',
+    leaderboardServiceUrl: process.env.LEADERBOARD_SERVICE_URL || 'http://localhost:8004',
   },
 
   aws: {
