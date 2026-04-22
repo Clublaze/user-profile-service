@@ -23,7 +23,16 @@ app.use(rateLimit({
 }));
 
 app.use(cors({
-  origin:      env.frontendBaseUrl,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      env.allowedFrontendOrigins.length === 0 ||
+      env.allowedFrontendOrigins.includes(origin)
+    ) {
+      return callback(null, true);
+    }
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 
